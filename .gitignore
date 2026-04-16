@@ -1,0 +1,10 @@
+# Data files — these are created automatically and contain your personal log data
+*_data.json
+puppylog_data.json
+
+# Mac cruft
+.DS_Store
+
+# Editor folders
+.vscode/
+.idea/

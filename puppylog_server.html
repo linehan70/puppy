@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Puppy Log</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fdf8f0;
+    --surface: #fff9f2;
+    --surface2: #f5ede0;
+    --border: #e8d8c4;
+    --border2: #d4bfa0;
+    --text: #2a1f14;
+    --text2: #7a6a58;
+    --text3: #b0a090;
+    --accent: #c87941;
+    --radius: 12px;
+    --mono: 'DM Mono', monospace;
+    --serif: 'Fraunces', Georgia, serif;
+  }
+
+  html.dark {
+    --bg: #1a1410;
+    --surface: #221c16;
+    --surface2: #2c241c;
+    --border: #3c3028;
+    --border2: #544438;
+    --text: #f0e8d8;
+    --text2: #a09080;
+    --text3: #706050;
+    --accent: #e8a060;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--mono);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  header {
+    padding: 2.5rem 2rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  header h1 {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: 2rem;
+    letter-spacing: -0.02em;
+  }
+
+  header h1 span {
+    color: var(--text3);
+    font-size: 1rem;
+    font-family: var(--mono);
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .hbtn {
+    padding: 6px 12px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border2);
+    font-family: var(--mono);
+    font-size: 12px;
+    cursor: pointer;
+    background: var(--surface);
+    color: var(--text2);
+    transition: all .15s;
+  }
+  .hbtn:hover { background: var(--surface2); color: var(--text); }
+
+  .main {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  /* Activity buttons */
+  .activities {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 2rem;
+  }
+
+  @media (max-width: 480px) {
+    .activities { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .act-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 18px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all .15s;
+    font-family: var(--mono);
+  }
+
+  .act-btn:hover {
+    border-color: var(--border2);
+    background: var(--surface2);
+    transform: translateY(-1px);
+  }
+
+  .act-btn:active { transform: translateY(0); }
+
+  .act-btn .icon {
+    font-size: 28px;
+    line-height: 1;
+  }
+
+  .act-btn .act-label {
+    font-size: 11px;
+    color: var(--text2);
+    text-align: center;
+    line-height: 1.3;
+  }
+
+  .act-btn .last-time {
+    font-size: 10px;
+    color: var(--text3);
+    text-align: center;
+  }
+
+  .act-btn.potty-out  { border-left: 3px solid #1d9e75; }
+  .act-btn.potty-in   { border-left: 3px solid #c0392b; }
+  .act-btn.nap        { border-left: 3px solid #7090e0; }
+  .act-btn.wake       { border-left: 3px solid #e8a020; }
+  .act-btn.fed        { border-left: 3px solid #c87941; }
+  .act-btn.play       { border-left: 3px solid #c87941; }
+  .act-btn.training   { border-left: 3px solid #533AB7; }
+  .act-btn.bedtime    { border-left: 3px solid #2c4a3e; }
+  .act-btn.morning    { border-left: 3px solid #c8a050; }
+
+  /* Log */
+  .log-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .log-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--text3);
+  }
+
+  .clear-btn {
+    font-size: 11px;
+    color: var(--text3);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--mono);
+    padding: 2px 6px;
+    border-radius: 6px;
+  }
+  .clear-btn:hover { color: #c0392b; background: #fdf0ee; }
+
+  .log-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .log-empty {
+    text-align: center;
+    padding: 32px;
+    font-size: 13px;
+    color: var(--text3);
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+  }
+
+  .log-entry {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border2);
+    border-radius: 8px;
+    animation: slideIn .2s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .log-entry.potty-out  { border-left-color: #1d9e75; }
+  .log-entry.potty-in   { border-left-color: #c0392b; }
+  .log-entry.nap        { border-left-color: #7090e0; }
+  .log-entry.wake       { border-left-color: #e8a020; }
+  .log-entry.fed        { border-left-color: #c87941; }
+  .log-entry.play       { border-left-color: #c87941; }
+  .log-entry.training   { border-left-color: #533AB7; }
+  .log-entry.bedtime    { border-left-color: #2c4a3e; }
+  .log-entry.morning    { border-left-color: #c8a050; }
+
+  .log-icon { font-size: 18px; flex-shrink: 0; }
+
+  .log-body { flex: 1; }
+
+  .log-label {
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .log-time {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 1px;
+  }
+
+  .log-delete {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text3);
+    font-size: 13px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    opacity: 0;
+    transition: all .12s;
+  }
+
+  .log-entry:hover .log-delete { opacity: 1; }
+  .log-delete:hover { color: #c0392b; background: #fdf0ee; }
+
+  .date-divider {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--text3);
+    padding: 8px 0 4px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4px;
+    margin-top: 8px;
+  }
+
+  .date-divider:first-child { margin-top: 0; }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(60px);
+    background: var(--text);
+    color: var(--bg);
+    padding: 10px 20px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-family: var(--mono);
+    opacity: 0;
+    transition: all .25s;
+    pointer-events: none;
+    z-index: 200;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .log-edit-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text3);
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-family: var(--mono);
+    opacity: 0;
+    transition: all .12s;
+    margin-top: 2px;
+    display: block;
+  }
+  .log-entry:hover .log-edit-btn { opacity: 1; }
+  .log-edit-btn:hover { color: var(--accent); background: var(--surface2); }
+
+  .time-edit-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+  }
+
+  .time-picker-select {
+    padding: 4px 6px;
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    outline: none;
+    cursor: pointer;
+  }
+  .time-picker-select.hour  { width: 54px; }
+  .time-picker-select.min   { width: 54px; }
+  .time-picker-select.ampm  { width: 54px; }
+
+  .time-save-btn {
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 11px;
+    cursor: pointer;
+  }
+  .time-save-btn:hover { background: var(--surface2); }
+
+  .time-cancel-btn {
+    padding: 3px 6px;
+    border-radius: 6px;
+    border: none;
+    background: none;
+    color: var(--text3);
+    font-family: var(--mono);
+    font-size: 11px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Puppy Log <span>/ activity tracker</span></h1>
+  <div class="header-right">
+    <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3)">
+      <div id="saveDot" style="width:6px;height:6px;border-radius:50%;background:var(--text3);transition:background .3s"></div>
+      <span id="saveLabel">loading</span>
+    </div>
+    <a href="puppy.html" style="text-decoration:none">
+      <button class="hbtn">&#8592; schedule</button>
+    </a>
+    <button class="hbtn" id="modeBtn" onclick="toggleMode()">dark mode</button>
+  </div>
+</header>
+
+<div class="main">
+
+  <div class="activities">
+    <button class="act-btn potty-out" onclick="log('potty-out')">
+      <span class="icon">🌿</span>
+      <span class="act-label">Potty outside</span>
+      <span class="last-time" id="last-potty-out">—</span>
+    </button>
+    <button class="act-btn potty-in" onclick="log('potty-in')">
+      <span class="icon">😬</span>
+      <span class="act-label">Accident inside</span>
+      <span class="last-time" id="last-potty-in">—</span>
+    </button>
+    <button class="act-btn nap" onclick="log('nap')">
+      <span class="icon">😴</span>
+      <span class="act-label">Nap started</span>
+      <span class="last-time" id="last-nap">—</span>
+    </button>
+    <button class="act-btn wake" onclick="log('wake')">
+      <span class="icon">⏰</span>
+      <span class="act-label">Woke up</span>
+      <span class="last-time" id="last-wake">—</span>
+    </button>
+    <button class="act-btn fed" onclick="log('fed')">
+      <span class="icon">🍗</span>
+      <span class="act-label">Fed</span>
+      <span class="last-time" id="last-fed">—</span>
+    </button>
+    <button class="act-btn play" onclick="log('play')">
+      <span class="icon">🎾</span>
+      <span class="act-label">Playtime</span>
+      <span class="last-time" id="last-play">—</span>
+    </button>
+    <button class="act-btn training" onclick="log('training')">
+      <span class="icon">🏅</span>
+      <span class="act-label">Training</span>
+      <span class="last-time" id="last-training">—</span>
+    </button>
+  </div>
+
+  <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:10px;padding-top:4px;border-top:1px solid var(--border)">sleep</div>
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:2rem">
+    <button class="act-btn bedtime" onclick="log('bedtime')">
+      <span class="icon">🌙</span>
+      <span class="act-label">Bedtime</span>
+      <span class="last-time" id="last-bedtime">—</span>
+    </button>
+    <button class="act-btn morning" onclick="log('morning')">
+      <span class="icon">☀️</span>
+      <span class="act-label">Morning wake up</span>
+      <span class="last-time" id="last-morning">—</span>
+    </button>
+  </div>
+
+  <div class="log-header">
+    <div class="log-title">today's log</div>
+    <button class="clear-btn" onclick="clearLog()">clear all</button>
+  </div>
+  <div class="log-list" id="logList"></div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const ACTIVITIES = {
+  'potty-out': { label: 'Potty outside',   icon: '🌿' },
+  'potty-in':  { label: 'Accident inside', icon: '😬' },
+  'nap':       { label: 'Nap started',     icon: '😴' },
+  'wake':      { label: 'Woke up',         icon: '⏰' },
+  'fed':       { label: 'Fed',             icon: '🍗' },
+  'play':      { label: 'Playtime',        icon: '🎾' },
+  'training':  { label: 'Training',        icon: '🏅' },
+  'bedtime':   { label: 'Bedtime',         icon: '🌙' },
+  'morning':   { label: 'Morning wake up', icon: '☀️'  }
+};
+
+const MODE_KEY = 'linebucks_mode';
+let entries = [];
+let editingId = null;
+let saveTimer = null;
+
+function nowStr() {
+  return new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+}
+
+function dateStr(ts) {
+  const d = new Date(ts);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (d.toDateString() === today.toDateString()) return 'Today';
+  if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
+  return d.toLocaleDateString('en-US', { weekday:'long', month:'short', day:'numeric' });
+}
+
+function setStatus(s) {
+  const dot = document.getElementById('saveDot');
+  const lbl = document.getElementById('saveLabel');
+  const colors = { loading:'var(--text3)', saving:'#e8a020', saved:'#1d9e75', error:'#c0392b' };
+  const labels = { loading:'loading...', saving:'saving...', saved:'saved', error:'save error' };
+  dot.style.background = colors[s] || colors.loading;
+  lbl.textContent = labels[s] || s;
+}
+
+async function load() {
+  setStatus('loading');
+  try {
+    const r = await fetch('puppylog_data.php');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    entries = Array.isArray(d) ? d : [];
+    setStatus('saved');
+  } catch(e) {
+    setStatus('error');
+    toast('Could not load from server — check puppylog_data.php is in /volume1/web/');
+  }
+  render();
+}
+
+function persist() {
+  setStatus('saving');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    try {
+      const r = await fetch('puppylog_data.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(entries)
+      });
+      const result = await r.json();
+      if (result.error) throw new Error(result.error);
+      setStatus('saved');
+    } catch(e) {
+      setStatus('error');
+      toast('Save failed: ' + e.message);
+    }
+  }, 400);
+}
+
+function log(type) {
+  const entry = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2,5),
+    type,
+    ts: Date.now(),
+    timeStr: nowStr()
+  };
+  entries.unshift(entry);
+  persist();
+  render();
+  toast(ACTIVITIES[type].icon + '  ' + ACTIVITIES[type].label + ' logged at ' + entry.timeStr);
+}
+
+function deleteEntry(id) {
+  entries = entries.filter(e => e.id !== id);
+  persist();
+  render();
+}
+
+function clearLog() {
+  if (!confirm('Clear all log entries?')) return;
+  entries = [];
+  persist();
+  render();
+}
+
+function startEdit(id) {
+  editingId = id;
+  render();
+}
+
+function cancelEdit() {
+  editingId = null;
+  render();
+}
+
+function buildTimePicker(id, timeStr) {
+  // Parse existing timeStr e.g. "9:30 AM"
+  var match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+  var h = match ? parseInt(match[1]) : 12;
+  var m = match ? match[2] : '00';
+  var ap = match ? match[3].toUpperCase() : 'AM';
+
+  var hours = '';
+  for (var i = 1; i <= 12; i++) {
+    hours += '<option value="' + i + '"' + (i === h ? ' selected' : '') + '>' + i + '</option>';
+  }
+  var mins = '';
+  ['00','05','10','15','20','25','30','35','40','45','50','55'].forEach(function(v) {
+    mins += '<option value="' + v + '"' + (v === m ? ' selected' : '') + '>' + v + '</option>';
+  });
+  var ampm = '<option value="AM"' + (ap==='AM'?' selected':'') + '>AM</option>' +
+             '<option value="PM"' + (ap==='PM'?' selected':'') + '>PM</option>';
+
+  return '<select class="time-picker-select hour" id="ph-' + id + '">' + hours + '</select>' +
+         '<span style="color:var(--text3);font-size:13px">:</span>' +
+         '<select class="time-picker-select min" id="pm-' + id + '">' + mins + '</select>' +
+         '<select class="time-picker-select ampm" id="pa-' + id + '">' + ampm + '</select>';
+}
+
+function timeStrToMinutes(str) {
+  if (!str) return 0;
+  var s = str.trim().toUpperCase();
+  var isPM = s.indexOf('PM') !== -1;
+  var isAM = s.indexOf('AM') !== -1;
+  s = s.replace('AM','').replace('PM','').trim();
+  var parts = s.split(':');
+  var h = parseInt(parts[0]) || 0;
+  var m = parseInt(parts[1]) || 0;
+  if (isPM && h !== 12) h += 12;
+  if (isAM && h === 12) h = 0;
+  return h * 60 + m;
+}
+
+function saveEditTime(id) {
+  var h  = document.getElementById('ph-' + id);
+  var m  = document.getElementById('pm-' + id);
+  var ap = document.getElementById('pa-' + id);
+  if (!h || !m || !ap) return;
+  var val = h.value + ':' + m.value + ' ' + ap.value;
+  var entry = entries.find(function(e) { return e.id === id; });
+  if (entry) {
+    entry.timeStr = val;
+    // Update ts to match new time so sorting works correctly
+    var now = new Date();
+    var hNum = parseInt(h.value) % 12 + (ap.value === 'PM' ? 12 : 0);
+    now.setHours(hNum, parseInt(m.value), 0, 0);
+    entry.ts = now.getTime();
+    // Re-sort entries: most recent first, grouped by day
+    entries.sort(function(a, b) { return b.ts - a.ts; });  // keep for date grouping
+    persist();
+  }
+  editingId = null;
+  render();
+  toast('Time updated to ' + val);
+}
+
+function sortEntries() {
+  entries.sort(function(a, b) {
+    // Primary sort: date descending (newer dates first)
+    var dateA = new Date(a.ts).toDateString();
+    var dateB = new Date(b.ts).toDateString();
+    if (dateA !== dateB) return b.ts - a.ts;
+    // Secondary sort: time descending within same day (later times first)
+    return timeStrToMinutes(b.timeStr) - timeStrToMinutes(a.timeStr);
+  });
+}
+
+function render() {
+  sortEntries();
+  // Update last-time badges on buttons
+  Object.keys(ACTIVITIES).forEach(type => {
+    const last = entries.find(e => e.type === type);
+    const el = document.getElementById('last-' + type);
+    if (el) el.textContent = last ? 'last: ' + last.timeStr : '—';
+  });
+
+  // Render log list grouped by date
+  const el = document.getElementById('logList');
+  if (entries.length === 0) {
+    el.innerHTML = '<div class="log-empty">no entries yet — tap an activity above to log it</div>';
+    return;
+  }
+
+  let html = '';
+  let lastDate = '';
+  entries.forEach(entry => {
+    const d = dateStr(entry.ts);
+    if (d !== lastDate) {
+      html += `<div class="date-divider">${d}</div>`;
+      lastDate = d;
+    }
+    const act = ACTIVITIES[entry.type] || { label: entry.type, icon: '•' };
+    const isEditing = editingId === entry.id;
+    html += `<div class="log-entry ${entry.type}" id="entry-${entry.id}">
+      <span class="log-icon">${act.icon}</span>
+      <div class="log-body">
+        <div class="log-label">${act.label}</div>
+        ${isEditing
+          ? `<div class="time-edit-wrap">
+               ${buildTimePicker(entry.id, entry.timeStr)}
+               <button class="time-save-btn" onclick="saveEditTime('${entry.id}')">save</button>
+               <button class="time-cancel-btn" onclick="cancelEdit()">&#10005;</button>
+             </div>`
+          : `<div class="log-time">${entry.timeStr}</div>
+             <button class="log-edit-btn" onclick="startEdit('${entry.id}')">edit time</button>`
+        }
+      </div>
+      <button class="log-delete" onclick="deleteEntry('${entry.id}')" title="Remove">&#10005;</button>
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+
+/* ── Dark / light mode ── */
+function applyMode(mode) {
+  document.documentElement.classList.toggle('dark', mode === 'dark');
+  var btn = document.getElementById('modeBtn');
+  if (btn) btn.textContent = mode === 'dark' ? 'light mode' : 'dark mode';
+}
+function toggleMode() {
+  var next = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+  localStorage.setItem(MODE_KEY, next);
+  applyMode(next);
+}
+applyMode(localStorage.getItem(MODE_KEY) || 'light');
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+document.addEventListener('keydown', function(e) {
+  if (!editingId) return;
+  if (e.key === 'Escape') cancelEdit();
+});
+
+load();
+</script>
+</body>
+</html>

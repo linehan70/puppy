@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Puppy Daily Schedule</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fdf8f0;
+    --surface: #fff9f2;
+    --surface2: #f5ede0;
+    --border: #e8d8c4;
+    --border2: #d4bfa0;
+    --text: #2a1f14;
+    --text2: #7a6a58;
+    --text3: #b0a090;
+    --accent: #c87941;
+    --accent2: #e8a060;
+    --done-bg: #f0f8f0;
+    --done-border: #b8d8b8;
+    --done-text: #4a8a4a;
+    --radius: 12px;
+    --mono: 'DM Mono', monospace;
+    --serif: 'Fraunces', Georgia, serif;
+  }
+
+  html.dark {
+    --bg: #1a1410;
+    --surface: #221c16;
+    --surface2: #2c241c;
+    --border: #3c3028;
+    --border2: #544438;
+    --text: #f0e8d8;
+    --text2: #a09080;
+    --text3: #706050;
+    --accent: #e8a060;
+    --accent2: #c87941;
+    --done-bg: #0f2018;
+    --done-border: #1e4030;
+    --done-text: #70c090;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--mono);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  header {
+    padding: 2.5rem 2rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .header-left h1 {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: 2rem;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+
+  .header-left h1 span {
+    color: var(--text3);
+    font-size: 1rem;
+    font-family: var(--mono);
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+
+  .header-left .date {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .mode-btn {
+    padding: 6px 12px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border2);
+    font-family: var(--mono);
+    font-size: 12px;
+    cursor: pointer;
+    background: var(--surface);
+    color: var(--text);
+    transition: all .15s;
+  }
+  .mode-btn:hover { background: var(--surface2); }
+
+  .reset-btn {
+    padding: 6px 12px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border2);
+    font-family: var(--mono);
+    font-size: 12px;
+    cursor: pointer;
+    background: var(--surface);
+    color: var(--text2);
+    transition: all .15s;
+  }
+  .reset-btn:hover { background: var(--surface2); color: var(--text); }
+
+  .progress-wrap {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .progress-bar-bg {
+    flex: 1;
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 99px;
+    transition: width .4s ease;
+  }
+
+  .progress-label {
+    font-size: 12px;
+    color: var(--text2);
+    white-space: nowrap;
+    min-width: 60px;
+    text-align: right;
+  }
+
+  .paw {
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .main {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all .15s;
+    user-select: none;
+  }
+
+  .item:hover { border-color: var(--border2); border-left-color: var(--accent2); }
+
+  .item.done {
+    background: var(--done-bg);
+    border-color: var(--done-border);
+    border-left-color: var(--done-text);
+  }
+
+  .checkbox {
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    border: 1.5px solid var(--border2);
+    background: var(--bg);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+    transition: all .15s;
+  }
+
+  .item.done .checkbox {
+    background: var(--done-text);
+    border-color: var(--done-text);
+  }
+
+  .checkmark {
+    display: none;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  .item.done .checkmark { display: block; }
+
+  .item-body { flex: 1; }
+
+  .item-time {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--accent);
+    margin-bottom: 3px;
+    font-weight: 500;
+  }
+
+  .item.done .item-time { color: var(--done-text); opacity: .8; }
+
+  .item-label {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.5;
+    transition: color .15s;
+  }
+
+  .item.done .item-label {
+    color: var(--text3);
+    text-decoration: line-through;
+    text-decoration-color: var(--done-text);
+  }
+
+  .item-note {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 3px;
+    font-style: italic;
+  }
+
+  .item.done .item-note { opacity: .6; }
+
+  .done-time {
+    font-size: 10px;
+    color: var(--done-text);
+    margin-top: 4px;
+    display: none;
+  }
+
+  .item.done .done-time { display: block; }
+
+  .all-done {
+    text-align: center;
+    padding: 2rem;
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: 1.4rem;
+    color: var(--text2);
+    display: none;
+    margin-top: 1rem;
+  }
+
+  .all-done.show { display: block; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>Puppy Schedule <span>/ daily checklist</span></h1>
+    <div class="date" id="todayDate"></div>
+  </div>
+  <div class="header-right">
+    <button class="reset-btn" onclick="resetDay()">reset day</button>
+    <button class="mode-btn" id="modeBtn" onclick="toggleMode()">dark mode</button>
+  </div>
+</header>
+
+<div class="progress-wrap">
+  <span class="paw">🐾</span>
+  <div class="progress-bar-bg">
+    <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+  </div>
+  <div class="progress-label" id="progressLabel">0 / 14</div>
+</div>
+
+<div class="main">
+  <div class="checklist" id="checklist"></div>
+  <div class="all-done" id="allDone">Good pup. Great day. 🐶</div>
+</div>
+
+<script>
+const ITEMS = [
+  { id:1,  time:'5:00 AM',           label:'Wake up, immediate potty break' },
+  { id:2,  time:'5:30 AM',           label:'Breakfast, followed by potty break' },
+  { id:3,  time:'6:00 AM',           label:'Playtime and bonding' },
+  { id:4,  time:'7:00 AM',           label:'Potty break and nap time in the crate' },
+  { id:5,  time:'9:00 AM',           label:'Wake up and potty break' },
+  { id:6,  time:'10:00 AM',          label:'Lunch, followed by a potty break' },
+  { id:7,  time:'10:30 AM',          label:'Short play / training session' },
+  { id:8,  time:'11:30 AM',          label:'Potty break and nap time' },
+  { id:9,  time:'1:30 PM',           label:'Wake up and potty break' },
+  { id:10, time:'3:00 PM',           label:'Dinner, followed by a potty break' },
+  { id:11, time:'4:00 PM',           label:'Playtime and light training' },
+  { id:12, time:'5:30 PM',           label:'Last potty break and wind down' },
+  { id:13, time:'6:00 PM',           label:'Bedtime' },
+  { id:14, time:'9:00 PM – 12:00 AM',label:'Potential potty break', note:'as needed' }
+];
+
+const KEY      = 'puppy_checklist';
+const MODE_KEY = 'linebucks_mode';  // shared with Linebucks so theme syncs
+
+let state = {};  // id -> { done: bool, doneAt: string }
+
+function todayStr() {
+  return new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+}
+
+function timeStr() {
+  return new Date().toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
+}
+
+function load() {
+  try {
+    const saved = localStorage.getItem(KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Reset if it's a new day
+      if (parsed.date !== new Date().toDateString()) {
+        state = {};
+      } else {
+        state = parsed.state || {};
+      }
+    }
+  } catch(e) { state = {}; }
+  document.getElementById('todayDate').textContent = todayStr();
+  render();
+}
+
+function persist() {
+  localStorage.setItem(KEY, JSON.stringify({
+    date: new Date().toDateString(),
+    state
+  }));
+}
+
+function toggle(id) {
+  if (state[id] && state[id].done) {
+    delete state[id];
+  } else {
+    state[id] = { done: true, doneAt: timeStr() };
+  }
+  persist();
+  render();
+}
+
+function resetDay() {
+  if (!confirm('Reset all checkboxes for today?')) return;
+  state = {};
+  persist();
+  render();
+}
+
+function render() {
+  const el = document.getElementById('checklist');
+  const doneCount = Object.keys(state).length;
+  const total = ITEMS.length;
+
+  // Progress bar
+  const pct = Math.round((doneCount / total) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = doneCount + ' / ' + total;
+
+  // List
+  el.innerHTML = ITEMS.map(item => {
+    const s = state[item.id];
+    const done = s && s.done;
+    return `<div class="item${done ? ' done' : ''}" onclick="toggle(${item.id})">
+      <div class="checkbox"><span class="checkmark">&#10003;</span></div>
+      <div class="item-body">
+        <div class="item-time">${item.time}</div>
+        <div class="item-label">${item.label}</div>
+        ${item.note ? `<div class="item-note">${item.note}</div>` : ''}
+        <div class="done-time">${done ? 'done at ' + s.doneAt : ''}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // All done message
+  document.getElementById('allDone').classList.toggle('show', doneCount === total);
+}
+
+/* ── Dark / light mode — shared key with Linebucks ── */
+function applyMode(mode) {
+  document.documentElement.classList.toggle('dark', mode === 'dark');
+  var btn = document.getElementById('modeBtn');
+  if (btn) btn.textContent = mode === 'dark' ? 'light mode' : 'dark mode';
+}
+function toggleMode() {
+  var next = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+  localStorage.setItem(MODE_KEY, next);
+  applyMode(next);
+}
+applyMode(localStorage.getItem(MODE_KEY) || 'light');
+
+load();
+</script>
+</body>
+</html>
