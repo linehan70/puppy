@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sample Schedule</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
@@ -290,7 +291,11 @@
     <div class="date" id="todayDate"></div>
   </div>
   <div class="header-right">
-    <a href="puppylog.html" style="text-decoration:none">
+    <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3)">
+      <div id="saveDot" style="width:6px;height:6px;border-radius:50%;background:var(--text3);transition:background .3s"></div>
+      <span id="saveLabel">loading</span>
+    </div>
+    <a href="puppylog_server.html" style="text-decoration:none">
       <button class="reset-btn">activity log &#8594;</button>
     </a>
     <button class="reset-btn" onclick="resetDay()">reset day</button>
