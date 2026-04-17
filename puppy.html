@@ -342,58 +342,27 @@ function timeStr() {
   return new Date().toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
 }
 
-function setStatus(s) {
-  const dot = document.getElementById('saveDot');
-  const lbl = document.getElementById('saveLabel');
-  const colors = { loading:'var(--text3)', saving:'#e8a020', saved:'#1d9e75', error:'#c0392b' };
-  dot.style.background = colors[s] || colors.loading;
-  lbl.textContent = { loading:'loading...', saving:'saving...', saved:'saved', error:'save error' }[s] || s;
-}
-
-async function load() {
-  setStatus('loading');
+function load() {
   try {
-    const r = await fetch('puppyschedule_data.php');
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const d = await r.json();
-    // Auto-reset if saved date is not today
-    if (d && d.date === new Date().toDateString()) {
-      state = d.state || {};
-    } else {
-      state = {};
-      await saveToServer(); // write fresh state for today
+    const saved = localStorage.getItem('puppy_checklist');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.date !== new Date().toDateString()) {
+        state = {};
+      } else {
+        state = parsed.state || {};
+      }
     }
-    setStatus('saved');
-  } catch(e) {
-    setStatus('error');
-    toast('Could not load — check puppyschedule_data.php is in the same folder.');
-  }
+  } catch(e) { state = {}; }
   document.getElementById('todayDate').textContent = todayStr();
   render();
 }
 
-async function saveToServer() {
-  const r = await fetch('puppyschedule_data.php', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ date: new Date().toDateString(), state })
-  });
-  return r.json();
-}
-
 function persist() {
-  setStatus('saving');
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(async () => {
-    try {
-      const result = await saveToServer();
-      if (result.error) throw new Error(result.error);
-      setStatus('saved');
-    } catch(e) {
-      setStatus('error');
-      toast('Save failed: ' + e.message);
-    }
-  }, 400);
+  localStorage.setItem('puppy_checklist', JSON.stringify({
+    date: new Date().toDateString(),
+    state
+  }));
 }
 
 function toggle(id) {
