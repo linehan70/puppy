@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Puppy Log</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
 <style>
@@ -144,8 +147,8 @@
     text-align: center;
   }
 
-  .act-btn.potty-out  { border-left: 3px solid #1d9e75; }
-  .act-btn.potty-in   { border-left: 3px solid #c0392b; }
+  .act-btn.out-pee, .act-btn.out-poop, .act-btn.out-both { border-left: 3px solid #1d9e75; }
+  .act-btn.in-pee, .act-btn.in-poop, .act-btn.in-both   { border-left: 3px solid #c0392b; }
   .act-btn.nap        { border-left: 3px solid #7090e0; }
   .act-btn.wake       { border-left: 3px solid #e8a020; }
   .act-btn.fed        { border-left: 3px solid #c87941; }
@@ -214,8 +217,8 @@
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  .log-entry.potty-out  { border-left-color: #1d9e75; }
-  .log-entry.potty-in   { border-left-color: #c0392b; }
+  .log-entry.out-pee, .log-entry.out-poop, .log-entry.out-both { border-left-color: #1d9e75; }
+  .log-entry.in-pee, .log-entry.in-poop, .log-entry.in-both   { border-left-color: #c0392b; }
   .log-entry.nap        { border-left-color: #7090e0; }
   .log-entry.wake       { border-left-color: #e8a020; }
   .log-entry.fed        { border-left-color: #c87941; }
@@ -353,6 +356,10 @@
 <header>
   <h1>Puppy Log <span>/ activity tracker</span></h1>
   <div class="header-right">
+    <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3)">
+      <div id="saveDot" style="width:6px;height:6px;border-radius:50%;background:var(--text3);transition:background .3s"></div>
+      <span id="saveLabel">loading</span>
+    </div>
     <a href="puppy.html" style="text-decoration:none">
       <button class="hbtn">&#8592; schedule</button>
     </a>
@@ -363,15 +370,35 @@
 <div class="main">
 
   <div class="activities">
-    <button class="act-btn potty-out" onclick="log('potty-out')">
+    <button class="act-btn out-pee" onclick="log('out-pee')">
       <span class="icon">🌿</span>
-      <span class="act-label">Potty outside</span>
-      <span class="last-time" id="last-potty-out">—</span>
+      <span class="act-label">Outside — pee</span>
+      <span class="last-time" id="last-out-pee">—</span>
     </button>
-    <button class="act-btn potty-in" onclick="log('potty-in')">
+    <button class="act-btn out-poop" onclick="log('out-poop')">
+      <span class="icon">💩</span>
+      <span class="act-label">Outside — poop</span>
+      <span class="last-time" id="last-out-poop">—</span>
+    </button>
+    <button class="act-btn out-both" onclick="log('out-both')">
+      <span class="icon">🌿</span>
+      <span class="act-label">Outside — both</span>
+      <span class="last-time" id="last-out-both">—</span>
+    </button>
+    <button class="act-btn in-pee" onclick="log('in-pee')">
       <span class="icon">😬</span>
-      <span class="act-label">Accident inside</span>
-      <span class="last-time" id="last-potty-in">—</span>
+      <span class="act-label">Accident — pee</span>
+      <span class="last-time" id="last-in-pee">—</span>
+    </button>
+    <button class="act-btn in-poop" onclick="log('in-poop')">
+      <span class="icon">💩</span>
+      <span class="act-label">Accident — poop</span>
+      <span class="last-time" id="last-in-poop">—</span>
+    </button>
+    <button class="act-btn in-both" onclick="log('in-both')">
+      <span class="icon">😬</span>
+      <span class="act-label">Accident — both</span>
+      <span class="last-time" id="last-in-both">—</span>
     </button>
     <button class="act-btn nap" onclick="log('nap')">
       <span class="icon">😴</span>
@@ -426,8 +453,12 @@
 
 <script>
 const ACTIVITIES = {
-  'potty-out': { label: 'Potty outside',   icon: '🌿' },
-  'potty-in':  { label: 'Accident inside', icon: '😬' },
+  'out-pee':   { label: 'Outside — pee',   icon: '🌿' },
+  'out-poop':  { label: 'Outside — poop',  icon: '💩' },
+  'out-both':  { label: 'Outside — both',  icon: '🌿' },
+  'in-pee':    { label: 'Accident — pee',  icon: '😬' },
+  'in-poop':   { label: 'Accident — poop', icon: '💩' },
+  'in-both':   { label: 'Accident — both', icon: '😬' },
   'nap':       { label: 'Nap started',     icon: '😴' },
   'wake':      { label: 'Woke up',         icon: '⏰' },
   'fed':       { label: 'Fed',             icon: '🍗' },
@@ -440,6 +471,7 @@ const ACTIVITIES = {
 const MODE_KEY = 'linebucks_mode';
 let entries = [];
 let editingId = null;
+let saveTimer = null;
 
 function nowStr() {
   return new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
@@ -455,17 +487,48 @@ function dateStr(ts) {
   return d.toLocaleDateString('en-US', { weekday:'long', month:'short', day:'numeric' });
 }
 
-function load() {
+function setStatus(s) {
+  const dot = document.getElementById('saveDot');
+  const lbl = document.getElementById('saveLabel');
+  const colors = { loading:'var(--text3)', saving:'#e8a020', saved:'#1d9e75', error:'#c0392b' };
+  const labels = { loading:'loading...', saving:'saving...', saved:'saved', error:'save error' };
+  dot.style.background = colors[s] || colors.loading;
+  lbl.textContent = labels[s] || s;
+}
+
+async function load() {
+  setStatus('loading');
   try {
-    const s = localStorage.getItem('puppy_log');
-    if (s) entries = JSON.parse(s);
-    if (!Array.isArray(entries)) entries = [];
-  } catch(e) { entries = []; }
+    const r = await fetch('puppylog_data.php');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    entries = Array.isArray(d) ? d : [];
+    setStatus('saved');
+  } catch(e) {
+    setStatus('error');
+    toast('Could not load from server — check puppylog_data.php is in /volume1/web/');
+  }
   render();
 }
 
 function persist() {
-  localStorage.setItem('puppy_log', JSON.stringify(entries));
+  setStatus('saving');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    try {
+      const r = await fetch('puppylog_data.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(entries)
+      });
+      const result = await r.json();
+      if (result.error) throw new Error(result.error);
+      setStatus('saved');
+    } catch(e) {
+      setStatus('error');
+      toast('Save failed: ' + e.message);
+    }
+  }, 400);
 }
 
 function log(type) {
